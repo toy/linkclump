@@ -153,9 +153,10 @@ function mousedown(event) {
 				count_label.style.width = "50px";
 				count_label.style.top = "10px";
 				count_label.style.height = "20px";
-				count_label.style.fontSize = "10px";
+				count_label.style.fontSize = "12px";
 				count_label.style.font = "Arial, sans-serif";
 				count_label.style.color = "black";
+				count_label.style.textShadow = "0 0 3px white, 0 0 3px white, 0 0 3px white";
 
 				document.body.appendChild(box);
 				document.body.appendChild(count_label);
