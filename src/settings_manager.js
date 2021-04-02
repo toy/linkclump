@@ -9,11 +9,11 @@ SettingsManager.prototype.init = function() {
 			"actions": {
 				"101": {
 					"mouse": 0,  // left mouse button
-					"key": 90,   // z key
+					"key": 16,   // shift key
 					"action": "tabs",
 					"color": "#FFA500",
 					"options": {
-						"smart": 0,
+						"smart": 1,
 						"ignore": [0],
 						"delay": 0,
 						"close": 0,
