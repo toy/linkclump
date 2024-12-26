@@ -153,9 +153,9 @@ function handleRequests(request, sender, callback){
 		case "bm":
 			chrome.bookmarks.getTree(
 				function(bookmarkTreeNodes) {
-					// make assumption that bookmarkTreeNodes[0].children[1] refers to the "other bookmarks" folder
+					// make assumption that bookmarkTreeNodes[0].children[0] refers to the "bookmarks bar" folder
 					// as different languages will not use the english name to refer to the folder
-					chrome.bookmarks.create({"parentId": bookmarkTreeNodes[0].children[1].id, "title": "Linkclump "+timeConverter(new Date())},
+					chrome.bookmarks.create({"parentId": bookmarkTreeNodes[0].children[0].id, "title": "Linkclump "+timeConverter(new Date())},
 						function(newFolder) {
 							for (let j = 0; j < request.urls.length; j++) {
 								chrome.bookmarks.create({"parentId": newFolder.id,
