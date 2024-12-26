@@ -46,16 +46,32 @@ function openTab(urls, delay, windowId, openerTabId, tabPosition, closeTime) {
 
 }
 
-function copyToClipboard( text ){
-    var copyDiv = document.createElement("textarea");
-    copyDiv.contentEditable = true;
-    document.body.appendChild(copyDiv);
-    copyDiv.innerHTML = text;
-    copyDiv.unselectable = "off";
-    copyDiv.focus();
-    document.execCommand("SelectAll");
-    document.execCommand("Copy", false, null);
-    document.body.removeChild(copyDiv);
+let offscreenPromise;
+function createOffscreenDocument() {
+	if (offscreenPromise) return offscreenPromise;
+
+	return chrome.runtime.getContexts({contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT]})
+		.then(contexts => {
+			if (contexts.length) return true;
+
+			offscreenPromise ||= chrome.offscreen.createDocument({
+				url: chrome.runtime.getURL('copy_to_clipboard.html'),
+				reasons: [chrome.offscreen.Reason.CLIPBOARD],
+				justification: 'Required to copy to clipboard',
+			});
+
+			return offscreenPromise;
+		});
+}
+
+function copyToClipboard(text){
+	createOffscreenDocument()
+		.then(() => {
+			chrome.runtime.sendMessage({
+				message: 'copy-to-clipboard',
+				text: text
+			})
+		});
 }
 
 function pad(number, length) {

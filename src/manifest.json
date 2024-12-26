@@ -20,6 +20,8 @@
   ],
   "permissions": [
     "bookmarks",
+    "clipboardWrite",
+    "offscreen",
     "scripting",
     "storage"
   ],
