@@ -502,7 +502,7 @@ function save_action(event) {
 }
 
 function save_params() {
-	chrome.extension.sendMessage({
+	chrome.runtime.sendMessage({
 		message: "update",
 		settings: params
 	});
@@ -537,7 +537,7 @@ $(function() {
 
 	setup_form();
 
-	chrome.extension.sendMessage({
+	chrome.runtime.sendMessage({
 		message: "init"
 	}, function(response){
 		params = response;

@@ -1,41 +1,11 @@
-var CURRENT_VERSION = "5";
+const CURRENT_VERSION = "5";
 
 function SettingsManager() {}
 
-SettingsManager.prototype.load = function() {
-	try {
-		// load data from local storage
-		var data = localStorage["settings"];
-		
-		// attempt to parse, if unable then make the assumption it has been corrupted
-		return JSON.parse(data)
-	} catch(error) {
-		var settings = this.init();
-		settings.error = "Error: "+error+"|Data:"+data;
-		return settings;
-	}
-};
-
-SettingsManager.prototype.save = function(settings) {
-	// remove any error messages from object (shouldn't be there)
-	if (settings.error !== undefined) {
-		delete settings.error;
-	}
-	
-	localStorage["settings"] = JSON.stringify(settings);
-};
-
-SettingsManager.prototype.isInit = function() {
-	return (localStorage["version"] !== undefined);
-};
-
-SettingsManager.prototype.isLatest = function() {
-	return (localStorage["version"] === CURRENT_VERSION);
-};
+const storage = chrome.storage.local;
 
 SettingsManager.prototype.init = function() {
-	// create default settings for first time user
-	var settings = {
+	const settings = {
 			"actions": {
 				"101": {
 					"mouse": 0,  // left mouse button
@@ -56,16 +26,28 @@ SettingsManager.prototype.init = function() {
 			"blocked": []
 		};
 
-	// save settings to store
-	localStorage["settings"] = JSON.stringify(settings);
-	localStorage["version"] = CURRENT_VERSION;
-	
-	return settings;
+	return storage.set({settings: settings, version: CURRENT_VERSION})
+		.then(() => settings);
 };
 
+SettingsManager.prototype.load = function() {
+	return storage.get("settings")
+		.then(({settings}) => settings)
+		.catch(error => {
+			console.log(`Unable to properly load linkclump (${error}), returning to default settings`);
+			return this.init();
+		});
+}
 
-SettingsManager.prototype.update = function() {
-	if (!this.isInit()) {
-		this.init();
-	}
-};
+SettingsManager.prototype.save = settings => storage.set({settings: settings});
+
+SettingsManager.prototype.initOrUpdate = function() {
+	return storage.get("version")
+		.then(({version}) => {
+			if (version === undefined) {
+				return this.init().then(() => true);
+			} else if (version !== CURRENT_VERSION) {
+				return this.init().then(() => false);
+			}
+		});
+}

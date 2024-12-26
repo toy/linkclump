@@ -25,16 +25,12 @@ var scroll_bug_ignore = false;
 var os = ((navigator.appVersion.indexOf("Win") === -1) ? OS_LINUX : OS_WIN);
 var timer = 0;
 
-chrome.extension.sendMessage({
+chrome.runtime.sendMessage({
 	message: "init"
-}, function(response) {
+}).then(response => {
 	if (response === null) {
 		console.log("Unable to load linkclump due to null response");
 	} else {
-		if (response.hasOwnProperty("error")) {
-			console.log("Unable to properly load linkclump, returning to default settings: " + JSON.stringify(response));
-		}
-
 		settings = response.actions;
 
 		var allowed = true;
@@ -58,7 +54,7 @@ chrome.extension.sendMessage({
 	}
 });
 
-chrome.extension.onMessage.addListener(function(request, sender, callback) {
+chrome.runtime.onMessage.addListener(function(request, sender, callback) {
 	if (request.message === "update") {
 		this.settings = request.settings.actions;
 	}
@@ -494,7 +490,7 @@ function detech(x, y, open) {
 	count_label.innerText = count_tabs.size;
 
 	if (open_tabs.length > 0) {
-		chrome.extension.sendMessage({
+		chrome.runtime.sendMessage({
 			message: "activate",
 			urls: open_tabs,
 			setting: this.settings[this.setting]

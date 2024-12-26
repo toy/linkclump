@@ -1,3 +1,5 @@
+importScripts("settings_manager.js");
+
 var settingsManager = new SettingsManager();
 
 Array.prototype.unique = function() {
@@ -32,14 +34,14 @@ function openTab(urls, delay, windowId, openerTabId, tabPosition, closeTime) {
 
 	chrome.tabs.create(obj, function(tab) {
 		if(closeTime > 0) {
-			window.setTimeout(function() {
+			setTimeout(function() {
 				chrome.tabs.remove(tab.id);
 			}, closeTime*1000);
 		}
 	});
 
 	if(urls.length > 0) {
-		window.setTimeout(function() {openTab(urls, delay, windowId, openerTabId, tabPosition, closeTime)}, delay*1000);
+		setTimeout(function() {openTab(urls, delay, windowId, openerTabId, tabPosition, closeTime)}, delay*1000);
 	}
 
 }
@@ -181,8 +183,8 @@ function handleRequests(request, sender, callback){
 
 		break;
 	case "init":
-		callback(settingsManager.load());
-		break;
+		settingsManager.load().then(callback);
+		return true; // true is important for callback to work from a promise
 	case "update":
 		settingsManager.save(request.settings);
 	
@@ -193,7 +195,7 @@ function handleRequests(request, sender, callback){
 				window.tabs.forEach(function(tab){
 					chrome.tabs.sendMessage(tab.id, {
 						message: "update",
-						settings: settingsManager.load()
+						settings: request.settings
 					}, null);
 				})
 			})
@@ -203,33 +205,27 @@ function handleRequests(request, sender, callback){
 	}
 }
 
-chrome.extension.onMessage.addListener(handleRequests)
+chrome.runtime.onMessage.addListener(handleRequests)
 
+settingsManager.initOrUpdate().then(firstRun => {
+	if (!firstRun) return
 
-if (!settingsManager.isInit()) {
-	// initialize settings manager with defaults and to stop this appearing again
-	settingsManager.init();
-	
 	// inject Linkclump into windows currently open to make it just work
 	chrome.windows.getAll({ populate: true }, function(windows) {
 		for (var i = 0; i < windows.length; ++i) {
 			for (var j = 0; j < windows[i].tabs.length; ++j) {
 				if (!/^https?:\/\//.test(windows[i].tabs[j].url)) continue;
-				chrome.tabs.executeScript(windows[i].tabs[j].id, { file: "linkclump.js" });
+
+				chrome.scripting.executeScript({
+					target: {tabId: windows[i].tabs[j].id},
+					files: ["linkclump.js"]
+				});
 			}
 		}
 	});
-	
-	// pop up window to show tour and options page
-	chrome.windows.create({
-		url: document.location.protocol + "//" + document.location.host + "/pages/options.html?init=true",
-		width: 800,
-		height: 850,
-		left: screen.width / 2 - 800 / 2,
-		top: screen.height / 2 - 700 / 2
+
+	// show tour and options page
+	chrome.tabs.create({
+		url: chrome.runtime.getURL('pages/options.html') + "?init=true",
 	});
-} else if (!settingsManager.isLatest()) {
-	settingsManager.update();
-}
-
-
+});
