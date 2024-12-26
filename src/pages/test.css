@@ -5,7 +5,7 @@ body {
 	padding: 0px;
 }
 
-p {
+h1, p {
 	text-align: center;
 }
 
@@ -30,5 +30,5 @@ ul {
 }
 
 li {
-	padding: 15px;
+	padding: 10px;
 }
