@@ -221,11 +221,12 @@ function handleRequests(request, sender, callback){
 	}
 }
 
+// needed only to detect reloading/update of extension
+chrome.runtime.onConnect.addListener(() => {});
+
 chrome.runtime.onMessage.addListener(handleRequests)
 
 settingsManager.initOrUpdate().then(firstRun => {
-	if (!firstRun) return
-
 	// inject Linkclump into windows currently open to make it just work
 	chrome.windows.getAll({ populate: true }, function(windows) {
 		for (var i = 0; i < windows.length; ++i) {
@@ -240,8 +241,10 @@ settingsManager.initOrUpdate().then(firstRun => {
 		}
 	});
 
-	// show tour and options page
-	chrome.tabs.create({
-		url: chrome.runtime.getURL('pages/options.html') + "?init=true",
-	});
+	if (firstRun) {
+		// show tour and options page
+		chrome.tabs.create({
+			url: chrome.runtime.getURL('pages/options.html') + "?init=true",
+		});
+	}
 });

@@ -45,6 +45,14 @@ chrome.runtime.sendMessage({
 		}
 
 		if (allowed) {
+			chrome.runtime.connect().onDisconnect.addListener(() => {
+				window.removeEventListener("mousedown", this.mousedown, true);
+				window.removeEventListener("keydown", this.keydown, true);
+				window.removeEventListener("keyup", this.keyup, true);
+				window.removeEventListener("blur", this.blur, true);
+				window.removeEventListener("contextmenu", this.contextmenu, true);
+			});
+
 			window.addEventListener("mousedown", this.mousedown, true);
 			window.addEventListener("keydown", this.keydown, true);
 			window.addEventListener("keyup", this.keyup, true);
