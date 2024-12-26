@@ -21,6 +21,19 @@ SettingsManager.prototype.init = function() {
 						"reverse": false,
 						"end": false
 					}
+				},
+				"102": {
+					"mouse": 2,  // right mouse button
+					"key": 16,   // shift key
+					"action": "copy",
+					"color": "#1E90FF",
+					"options": {
+						"smart": 1,
+						"ignore": [0],
+						"copy": 0,
+						"block": false,
+						"reverse": false
+					}
 				}
 			},
 			"blocked": []
