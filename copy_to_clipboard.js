@@ -1,5 +1,5 @@
-chrome.runtime.onMessage.addListener((request) => {
-  if (request.message !== 'copy-to-clipboard') return
+chrome.runtime.onMessage.addListener(request => {
+  if (request.message !== 'copy-to-clipboard') return;
 
   const textarea = document.createElement('textarea');
   document.body.appendChild(textarea);

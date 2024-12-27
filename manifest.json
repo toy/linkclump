@@ -7,31 +7,22 @@
     "service_worker": "background.js"
   },
   "options_page": "pages/options.html",
-  "icons": {"16": "images/16x16.png",
-           "48": "images/48x48.png",
-          "128": "images/128x128.png" },
+  "icons": {"16": "images/16x16.png", "48": "images/48x48.png", "128": "images/128x128.png"},
   "content_scripts": [
     {
-    "matches": ["<all_urls>"],
-    "js": ["linkclump.js"],
-    "run_at": "document_end",
-    "all_frames": true
+      "matches": ["<all_urls>"],
+      "js": ["linkclump.js"],
+      "run_at": "document_end",
+      "all_frames": true
     }
   ],
-  "permissions": [
-    "bookmarks",
-    "clipboardWrite",
-    "offscreen",
-    "scripting",
-    "storage"
-  ],
-  "host_permissions": [
-    "http://*/*",
-    "https://*/*"
-  ],
-  "web_accessible_resources": [{
-    "resources": ["pages/test_area.html"],
-    "matches": [],
-    "extension_ids": []
-  }]
+  "permissions": ["bookmarks", "clipboardWrite", "offscreen", "scripting", "storage"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "web_accessible_resources": [
+    {
+      "resources": ["pages/test_area.html"],
+      "matches": [],
+      "extension_ids": []
+    }
+  ]
 }
