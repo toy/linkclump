@@ -243,17 +243,18 @@ chrome.runtime.onMessage.addListener(handleRequests);
 
 settingsManager.initOrUpdate().then(firstRun => {
   // inject Linkclump into windows currently open to make it just work
-  chrome.windows.getAll({populate: true}, function (windows) {
-    for (let i = 0; i < windows.length; ++i) {
-      for (let j = 0; j < windows[i].tabs.length; ++j) {
-        if (!/^https?:\/\//.test(windows[i].tabs[j].url)) continue;
+  chrome.windows.getAll({populate: true}, windows => {
+    windows.forEach(window => {
+      window.tabs.forEach(tab => {
+        if (!/^https?:\/\//.test(tab.url)) return;
+        if (tab.discarded) return;
 
         chrome.scripting.executeScript({
-          target: {tabId: windows[i].tabs[j].id},
+          target: {tabId: tab.id},
           files: ['linkclump.js'],
         });
-      }
-    }
+      });
+    });
   });
 
   if (firstRun) {
