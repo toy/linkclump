@@ -120,6 +120,19 @@ function formatLink({url, title}, copyFormat) {
   }
 }
 
+function eachAllowedTab(callback) {
+  chrome.windows.getAll({populate: true}, windows => {
+    windows.forEach(window => {
+      window.tabs.forEach(tab => {
+        if (!/^https?:\/\//.test(tab.url)) return;
+        if (tab.discarded) return;
+
+        callback(tab);
+      });
+    });
+  });
+}
+
 function handleRequests(request, sender, callback) {
   switch (request.message) {
   case 'activate':
@@ -212,25 +225,12 @@ function handleRequests(request, sender, callback) {
   case 'update':
     settingsManager.save(request.settings);
 
-    chrome.windows.getAll(
-      {
-        populate: true,
-      },
-      function (windowList) {
-        windowList.forEach(function (window) {
-          window.tabs.forEach(function (tab) {
-            chrome.tabs.sendMessage(
-              tab.id,
-              {
-                message: 'update',
-                settings: request.settings,
-              },
-              null,
-            );
-          });
-        });
-      },
-    );
+    eachAllowedTab(tab => {
+      chrome.tabs.sendMessage(tab.id, {
+        message: 'update',
+        settings: request.settings,
+      });
+    });
 
     break;
   }
@@ -243,17 +243,10 @@ chrome.runtime.onInstalled.addListener(function (details) {
 
   settingsManager.initOrUpdate().then(firstRun => {
     // inject Linkclump into windows currently open to make it just work
-    chrome.windows.getAll({populate: true}, windows => {
-      windows.forEach(window => {
-        window.tabs.forEach(tab => {
-          if (!/^https?:\/\//.test(tab.url)) return;
-          if (tab.discarded) return;
-
-          chrome.scripting.executeScript({
-            target: {tabId: tab.id},
-            files: ['linkclump.js'],
-          });
-        });
+    eachAllowedTab(tab => {
+      chrome.scripting.executeScript({
+        target: {tabId: tab.id},
+        files: ['linkclump.js'],
       });
     });
 
