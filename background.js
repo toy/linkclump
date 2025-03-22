@@ -236,31 +236,32 @@ function handleRequests(request, sender, callback) {
   }
 }
 
-// needed only to detect reloading/update of extension
-chrome.runtime.onConnect.addListener(() => {});
-
 chrome.runtime.onMessage.addListener(handleRequests);
 
-settingsManager.initOrUpdate().then(firstRun => {
-  // inject Linkclump into windows currently open to make it just work
-  chrome.windows.getAll({populate: true}, windows => {
-    windows.forEach(window => {
-      window.tabs.forEach(tab => {
-        if (!/^https?:\/\//.test(tab.url)) return;
-        if (tab.discarded) return;
+chrome.runtime.onInstalled.addListener(function (details) {
+  if (details.reason !== 'update' && details.reason !== 'install') return;
 
-        chrome.scripting.executeScript({
-          target: {tabId: tab.id},
-          files: ['linkclump.js'],
+  settingsManager.initOrUpdate().then(firstRun => {
+    // inject Linkclump into windows currently open to make it just work
+    chrome.windows.getAll({populate: true}, windows => {
+      windows.forEach(window => {
+        window.tabs.forEach(tab => {
+          if (!/^https?:\/\//.test(tab.url)) return;
+          if (tab.discarded) return;
+
+          chrome.scripting.executeScript({
+            target: {tabId: tab.id},
+            files: ['linkclump.js'],
+          });
         });
       });
     });
-  });
 
-  if (firstRun) {
-    // show tour and options page
-    chrome.tabs.create({
-      url: chrome.runtime.getURL('pages/options.html') + '?init=true',
-    });
-  }
+    if (firstRun) {
+      // show tour and options page
+      chrome.tabs.create({
+        url: chrome.runtime.getURL('pages/options.html') + '?init=true',
+      });
+    }
+  });
 });

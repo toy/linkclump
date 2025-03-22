@@ -26,6 +26,9 @@
   let os = navigator.appVersion.indexOf('Win') === -1 ? OS_LINUX : OS_WIN;
   let timer = 0;
 
+  const deactivation_message = `deactivate-${chrome.runtime.id}`;
+  let deactivation_function = null;
+
   chrome.runtime
     .sendMessage({
       message: 'init',
@@ -48,28 +51,37 @@
         }
 
         if (allowed) {
-          chrome.runtime.connect().onDisconnect.addListener(() => {
+          window.dispatchEvent(new Event(deactivation_message));
+          deactivation_function = () => {
+            if (chrome.runtime.id) return;
+
             window.removeEventListener('mousedown', mousedown, true);
             window.removeEventListener('keydown', keydown, true);
             window.removeEventListener('keyup', keyup, true);
             window.removeEventListener('blur', blur, true);
             window.removeEventListener('contextmenu', contextmenu, true);
-          });
+
+            window.removeEventListener(deactivation_message, deactivation_function);
+            chrome.runtime.onMessage.removeListener(runtimeMessage);
+          };
+          window.addEventListener(deactivation_message, deactivation_function);
 
           window.addEventListener('mousedown', mousedown, true);
           window.addEventListener('keydown', keydown, true);
           window.addEventListener('keyup', keyup, true);
           window.addEventListener('blur', blur, true);
           window.addEventListener('contextmenu', contextmenu, true);
+
+          chrome.runtime.onMessage.addListener(runtimeMessage);
         }
       }
     });
 
-  chrome.runtime.onMessage.addListener(function (request, sender, callback) {
+  function runtimeMessage(request, sender, callback) {
     if (request.message === 'update') {
       settings = request.settings.actions;
     }
-  });
+  }
 
   function mousemove(event) {
     prevent_escalation(event);
